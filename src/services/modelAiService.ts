@@ -30,21 +30,17 @@ export class MeasureService {
 
         const base64 = image.replace(/^data:image\/(png|jpeg|jpg|gif);base64,/, '')
 
+        const imageBuffered = Buffer.from(base64, 'base64')
+
+        const tempFile = path.join('tempImage.jpg')
+
         try {
-
-            const existingMeasure = await getMeasureForMonth(customer_code, measure_type, new Date(measure_datetime));
-
-            const imageBuffered = Buffer.from(base64, 'base64')
-
-            const tempFile = path.join('tempImage.jpg')
-
-            console.log(tempFile)
-
-            fs.writeFileSync(tempFile, imageBuffered);
 
             if (!this.validateBase64(base64) || typeof customer_code !== 'string') {
                 return catchErrorResponse(res, 400, ErrorCode.INVALID_DATA, "Os dados fornecidos no corpo da requisição são inválidos");
             }
+
+            const existingMeasure = await getMeasureForMonth(customer_code, measure_type, new Date(measure_datetime));
 
             if (existingMeasure) {
                 return catchErrorResponse(res, 409, ErrorCode.DOUBLE_REPORT, "Leitura do mês járealizada", "Já existe uma leitura para este tipo no mês atual");
@@ -54,18 +50,19 @@ export class MeasureService {
                 return catchErrorResponse(res, 400, ErrorCode.INVALID_DATA, "Os dados fornecidos no corpo da requisição são inválidos");
             }
 
+
+            fs.writeFileSync(tempFile, imageBuffered);
+
             const uploadResponse = await fileManager.uploadFile(tempFile, {
-                mimeType: 'image/jpg',
+                mimeType: 'image/jpeg',
                 displayName: 'Imagem'
             });
 
-            const prompt = "Qual é a leitura númerica deste medidor da imagem ? (só retorne o valor númerico)"
-
             const result = await model.generateContent([
-                prompt,
+                "Qual é a leitura númerica deste medidor da imagem ? (só retorne o valor númerico)",
                 {
-                    inlineData: {
-                        data: Buffer.from(fs.readFileSync(tempFile)).toString("base64"),
+                    fileData: {
+                        fileUri: uploadResponse.file.uri,
                         mimeType: uploadResponse.file.mimeType
                     }
                 }
@@ -73,40 +70,36 @@ export class MeasureService {
 
             fs.unlinkSync(tempFile);
 
-            const value = result.response.text().replace(/\n/g, '').trim()
+            const value = parseInt(result.response.text().replace(/\n/g, '').trim(), 10)
 
             const newUUID = uuidv4();
 
             const measure: IMeasure = {
                 customer_code: customer_code,
                 image_url: uploadResponse.file.uri,
-                measure_value: parseInt(value, 10),
+                measure_value: value,
                 measure_uuid: newUUID,
                 measure_datetime: new Date(measure_datetime),
                 measure_type: measure_type,
                 has_confirmed: false
             }
 
-            console.log(measure)
-
             const response: IResponse = {
                 image_url: uploadResponse.file.uri,
                 measure_value: value,
-                measure_uuid: newUUID,
+                measure_uuid: measure.measure_uuid as MeasureType,
             }
 
-            return await create(measure).then(() => {
-                return res.status(200).json({
-                    message: "Operação realizada com sucesso",
-                    data: response
-                })
-            }).catch((error) => {
-                console.log(error)
-                return catchErrorResponse(res, 500, ErrorCode.INTERNAL_SERVER_ERROR, "Erro interno no servidor");
+            await create(measure).catch(() => catchErrorResponse(res, 500, ErrorCode.INTERNAL_SERVER_ERROR, "Erro interno no servidor"))
+
+            return res.status(200).json({
+                message: "Operação realizada com sucesso",
+                data: response
             })
         }
         catch (error) {
             console.log(error)
+            fs.unlinkSync('tempImage.jpg')
             return catchErrorResponse(res, 500, ErrorCode.INTERNAL_SERVER_ERROR, "Erro interno no servidor");
         }
     }
@@ -114,34 +107,32 @@ export class MeasureService {
     async confirmMeasureValue(req: Request, res: Response): Promise<Response> {
         const { measure_uuid, confirmed_value } = req.body;
 
-        const measure: IMeasure = await findUnique(measure_uuid)
-
-        const existingMeasure = await getMeasureForMonth(measure.customer_code!, measure.measure_type, measure.measure_datetime);
         try {
 
-            if (typeof measure_uuid !== 'string' || measure_uuid !== measure.measure_uuid) {
+            if (typeof measure_uuid !== 'string') {
                 return catchErrorResponse(res, 400, ErrorCode.INVALID_DATA, "Algum campo não foi preenchido corretamente",
                     "Os dados fornecidos no corpo da requisição são inválidos");
             }
+
+            const measure: IMeasure = await findUnique(measure_uuid)
 
             if (!measure) {
                 return catchErrorResponse(res, 404, ErrorCode.MEASURE_NOT_FOUND, "Leitura não encontrada");
             }
 
-            if (measure.has_confirmed === true || existingMeasure) {
+            const existingMeasure = await getMeasureForMonth(measure.customer_code!, measure.measure_type, measure.measure_datetime);
+
+            if (measure.has_confirmed === true && existingMeasure) {
                 return catchErrorResponse(res, 409, ErrorCode.CONFIRMATION_DUPLICATE, "Leitura já confirmada", "Leitura do mês já realizada");
             }
 
 
-            return await update(measure_uuid, confirmed_value).then(() => {
-                return res.status(200).json({ status: "sucess" })
-            }).catch((error) => {
-                console.log(error)
-                return catchErrorResponse(res, 500, ErrorCode.INTERNAL_SERVER_ERROR, "Erro interno no servidor");
-            })
+            await update(measure_uuid, confirmed_value).catch(() => catchErrorResponse(res, 500, ErrorCode.INTERNAL_SERVER_ERROR, "Erro interno no servidor"))
+            return res.status(200).json({ status: "sucess" })
 
         }
         catch (error) {
+            console.log(error)
             return catchErrorResponse(res, 500, ErrorCode.INTERNAL_SERVER_ERROR, "Erro interno no servidor");
         }
     }
@@ -154,11 +145,10 @@ export class MeasureService {
 
             const measureTypeParam = req.query.measure_type as string | undefined
 
-            console.log(measureTypeParam)
 
-            const measure_type = measureTypeParam?.toUpperCase()
+            const measure_type = measureTypeParam?.toUpperCase() as MeasureType | undefined
 
-            if (measure_type && !Object.values(MeasureType).includes(measure_type as MeasureType)) {
+            if (measure_type && !Object.values(MeasureType).includes(measure_type)) {
                 return catchErrorResponse(res, 400, ErrorCode.INVALID_TYPE, "Tipo de medição não permitida",
                     "Parâmetro measure_type diferente de WATER ou GAS");
             }
@@ -189,6 +179,7 @@ export class MeasureService {
             })
         }
         catch (error) {
+            console.log(error)
             return catchErrorResponse(res, 500, ErrorCode.INTERNAL_SERVER_ERROR, "Erro interno no servidor");
         }
     }

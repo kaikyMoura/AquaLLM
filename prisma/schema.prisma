@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgres"
   url      = env("DATABASE_URL")
 }
 
@@ -12,9 +12,8 @@ enum MeasureType {
   GAS
 }
 
-model measures {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  measure_uuid String @unique
+model tb_measures {
+  measure_uuid String  @id
   image_url String
   measure_value Int
   confirmed_value Int?
