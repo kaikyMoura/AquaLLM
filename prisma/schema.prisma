@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum MeasureType {
+  WATER
+  GAS
+}
+
+model measures {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  measure_uuid String @unique
+  image_url String
+  measure_value Int
+  confirmed_value Int?
+  measure_datetime DateTime
+  measure_type MeasureType
+  customer_code String
+  has_confirmed Boolean
+}
