@@ -36,9 +36,6 @@ RUN npm run build
 # Create a new stage to run the application with minimal runtime dependencies
 FROM base as final
 
-# Use production node environment by default
-ENV NODE_ENV production
-
 # Set working directory
 WORKDIR /app
 
@@ -53,6 +50,10 @@ RUN chown -R node:node /app
 
 # Use a non-root user
 USER node
+
+RUN npx prisma migrate
+
+RUN npx prisma generate
 
 # Expose the port that the application listens on
 EXPOSE 3000
