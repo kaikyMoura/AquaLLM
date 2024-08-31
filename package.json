@@ -1,7 +1,7 @@
 {
-  "name": "back",
+  "name": "measuresservice",
   "version": "1.0.0",
-  "description": "back end de teste typeScript",
+  "description": "Back end para o desafio proposto pela shopper",
   "main": "index.js",
   "scripts": {
     "build": "tsc",
