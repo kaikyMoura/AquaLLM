@@ -23,8 +23,12 @@ Esses valores serão utilizados para configurar o banco de dados
 
 ```bash
 GEMINI_API_KEY=chave da api da llm
+
 POSTGRES_USER=usuario
+
 POSTGRES_PASSWORD=senha
-POSTGRES_DB=nome do banco
-DATABASE_URL="postgresql://<usuario_do_banco>:<senha_do_banco>@localhost:5432/$<banco>?schema=public"
+
+POSTGRES_DB=nome_do_banco
+
+DATABASE_URL="postgresql://<usuario_do_banco>:<senha_do_banco>@postgres:5432/$<banco>?schema=public"
 ```
