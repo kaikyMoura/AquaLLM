@@ -37,7 +37,6 @@ RUN npm run build
 FROM base as final
 
 # Use production node environment by default
-ENV NODE_ENV production
 
 # Set working directory
 WORKDIR /app
@@ -54,8 +53,14 @@ RUN chown -R node:node /app
 # Use a non-root user
 USER node
 
+COPY .env .env
+
+RUN npx prisma migrate
+
+RUN npx prisma generate
+
 # Expose the port that the application listens on
 EXPOSE 3000
 
 # Run the application
-CMD ["node", "dist/index.js"]
+CMD ["npm", "run", "start"]
