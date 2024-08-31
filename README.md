@@ -19,7 +19,10 @@ docker compose up --build
 ## A respeito do .env
 
 O banco de dados utilizado foi o postgres com o prisma.
+
 Esses valores serão utilizados para configurar o banco de dados
+
+Por via das dúvidas, preferi subir uma imagem postgres
 
 ```bash
 GEMINI_API_KEY=chave da api da llm
