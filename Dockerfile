@@ -36,6 +36,8 @@ RUN npm run build
 # Create a new stage to run the application with minimal runtime dependencies
 FROM base as final
 
+# Use production node environment by default
+
 # Set working directory
 WORKDIR /app
 
@@ -51,6 +53,8 @@ RUN chown -R node:node /app
 # Use a non-root user
 USER node
 
+COPY .env .env
+
 RUN npx prisma migrate
 
 RUN npx prisma generate
@@ -59,4 +63,4 @@ RUN npx prisma generate
 EXPOSE 3000
 
 # Run the application
-CMD ["node", "dist/index.js"]
+CMD ["npm", "run", "start"]
