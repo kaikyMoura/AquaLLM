@@ -3,7 +3,7 @@
 
 ## Clonar repositório localmente
 ```bash
-git clone https://github.com/kaikyMoura/desafio_shopper.git
+git clone https://github.com/kaikyMoura/AquaLLM.git
 ```
 
 
