@@ -1,4 +1,4 @@
-# Aqua_Gas_Image_Processor - Api de extração de dados de umagens #
+# Aqua_Gas_Image_Processor - Api de extração de dados de imagens #
 
 ## Introdução
 
