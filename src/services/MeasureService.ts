@@ -200,8 +200,11 @@ class MeasureService {
                 console.log(measure)
                 return catchErrorResponse(res, 404, ErrorCode.MEASURE_NOT_FOUND, "Leitura não encontrada");
             }
+            let imageUrl = measure.image_url
 
             await measureRepository.remove(measure_uuid)
+
+            await googleStorageService.deleteFile(imageUrl)
 
             return res.status(200).json({
                 message: "Medida deletada com sucesso.",

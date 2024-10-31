@@ -1,16 +1,13 @@
 import { GetSignedUrlConfig, Storage } from '@google-cloud/storage';
-import Multer from 'multer';
+import { DeleteOptions } from '@google-cloud/storage/build/cjs/src/nodejs-common/service-object';
 import { v4 as uuidv4 } from 'uuid';
 
 class GoogleStorageService {
-
-    private credentials = String(process.env.GOOGLE_APLICATION_CREDENTIALS)
 
     private storage = new Storage({ keyFilename: process.env.GOOGLE_APLICATION_CREDENTIALS });
 
     async uploadFileToGCS(buffer: Buffer) {
         let bucketName = "aqua_llm"
-        this.storage.authClient._getApplicationCredentialsFromFilePath(this.credentials)
 
         const fileName = uuidv4() + "_image.jpeg"
 
@@ -38,6 +35,22 @@ class GoogleStorageService {
         }
     }
 
+    async deleteFile(fileUrl: string) {
+        try {
+            let bucketName = "aqua_llm"
+
+            let fileName = new URL(fileUrl).pathname.split('/').slice(2).join('/')
+
+            const bucket = this.storage.bucket(bucketName).file(fileName)
+
+            await bucket.delete()
+
+            return true
+        }
+        catch (e) {
+            return false
+        }
+    }
 }
 
 export default new GoogleStorageService()
