@@ -1,13 +1,9 @@
 import { Request, Response, Router } from "express";
-import { MeasureService } from "../services/modelAiService";
+import measureService from "../services/MeasureService";
 
-export class MeasureController {
-    confirmMeasureValue(arg0: string, confirmMeasureValue: any) {
-        throw new Error('Method not implemented.');
-    }
+class MeasureController {
 
     async uploadImage(req: Request, res: Response): Promise<any> {
-        const measureService = new MeasureService()
         try {
 
             const response = await measureService.uploadFile(req, res)
@@ -20,7 +16,6 @@ export class MeasureController {
     }
 
     async confirmValue(req: Request, res: Response): Promise<any> {
-        const measureService = new MeasureService()
         try {
 
             const response = await measureService.confirmMeasureValue(req, res)
@@ -32,8 +27,19 @@ export class MeasureController {
         }
     }
 
+    async deleteMeasure(req: Request, res: Response): Promise<any> {
+        try {
+
+            const response = await measureService.remove(req, res)
+
+            return response
+        }
+        catch (error) {
+            console.error("Erro : ", error)
+        }
+    }
+
     async listMeasures(req: Request, res: Response): Promise<any> {
-        const measureService = new MeasureService()
         try {
 
             const response = await measureService.listMeasures(req, res)
@@ -45,3 +51,5 @@ export class MeasureController {
         }
     }
 }
+
+export default new MeasureController()

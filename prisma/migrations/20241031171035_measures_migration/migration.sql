@@ -2,7 +2,7 @@
 CREATE TYPE "MeasureType" AS ENUM ('WATER', 'GAS');
 
 -- CreateTable
-CREATE TABLE "tb_measures" (
+CREATE TABLE "Measure" (
     "measure_uuid" TEXT NOT NULL,
     "image_url" TEXT NOT NULL,
     "measure_value" INTEGER NOT NULL,
@@ -12,5 +12,5 @@ CREATE TABLE "tb_measures" (
     "customer_code" TEXT NOT NULL,
     "has_confirmed" BOOLEAN NOT NULL,
 
-    CONSTRAINT "tb_measures_pkey" PRIMARY KEY ("measure_uuid")
+    CONSTRAINT "Measure_pkey" PRIMARY KEY ("measure_uuid")
 );

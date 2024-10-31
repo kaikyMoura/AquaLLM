@@ -1,11 +1,12 @@
-import { MeasureType } from "../enums/MeasureType";
+import { MeasureType } from './../../node_modules/.prisma/client/index.d';
 
 export interface IMeasure {
-    measure_uuid: String,
-    image_url: String,
-    measure_value?: Number,
+    measure_uuid: string,
+    image_url: string,
+    measure_value: number,
     measure_datetime: Date,
     measure_type: MeasureType,
-    customer_code?: string,
+    confirmed_value: number | null
+    customer_code: string | null,
     has_confirmed: boolean
 }

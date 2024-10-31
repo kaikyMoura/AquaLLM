@@ -1,0 +1,7 @@
+runtime: nodejs
+env: flex
+runtime_config:
+  operating_system: ubuntu22
+
+env_variables:
+  GCLOUD_STORAGE_BUCKET: "aqua_llm"
